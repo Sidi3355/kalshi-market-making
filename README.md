@@ -19,6 +19,37 @@ The scripts run in order, each feeding the next through parquet files:
 
 Helper scripts: `src/experiment.py` (API exploration — series info, orderbooks), `src/see_parquet.py` (quick parquet inspection).
 
+## Key results
+
+```
+================ BACKTEST SUMMARY ================
+Series:              KXBTC (hourly BTC markets)
+Period:              2026-07-29 to 2026-08-27
+Markets traded:      344
+Model:               Avellaneda-Stoikov, delta cap 4c
+Parameters:          gamma=0.1, cutoff=90 min, k=3.3/$
+Assumptions:         size 1, max 2 fills/min/side, maker fee 1.75% rate
+                     fills = any print crossing quote (optimistic)
+
+Starting capital:    $100.00
+Final capital:       $148.41
+Total P&L:           $48.41  (+48.4%)
+Max drawdown:        $-15.93  (-15.9%)
+
+Fills:               5477
+P&L per fill:        0.884c
+Profitable markets:  228 (66%)
+Losing markets:      84
+Avg win / avg loss:  $0.57 / $-0.96
+Best market:         KXBTC-26JUL2917-B63375  $12.17
+Worst market:        KXBTC-26AUG2017-B72625  $-15.93
+Max inventory:       20 contracts
+Avg fills/market:    16
+==================================================
+```
+
+See `plots/pnl_curve.html` and `plots/pnl_hist.html` for the equity curve and per-market P&L distribution.
+
 ## Data in this repo
 
 Collected from Kalshi's public API for the KXBTC series, roughly **2026-07-24 to 2026-08-28**:
@@ -49,3 +80,10 @@ python src/collect_data.py   # or reuse the parquet files included here
 python src/get_params.py
 python src/backtest.py
 ```
+
+## Limitations
+
+- **No quote queue modeling** — a quote is assumed to fill whenever any trade prints through it. Real order books have queue position and priority, so actual fill rates (and P&L) would be lower.
+- **In-sample fitting** — γ and the quoting cutoff were selected by a grid search on the same data they were evaluated on, with only a rough old/new date split as an out-of-sample check. One month of data leaves real overfitting risk.
+- Quotes are static within each minute and reference candle-close mids, ignoring intraminute price movement.
+- The 1.75% maker fee rate is hardcoded; Kalshi's fee schedule can change.

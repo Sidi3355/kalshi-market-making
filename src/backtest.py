@@ -4,7 +4,7 @@ import math
 from datetime import datetime
 import plotly.graph_objects as go
 
-candles = pl.read_parquet("KXBTC_candles.parquet").with_columns(
+candles = pl.read_parquet("data/KXBTC_candles.parquet").with_columns(
     pl.col("yes_bid_close_dollars").cast(pl.Float64),
     pl.col("yes_ask_close_dollars").cast(pl.Float64),
 ).filter(
@@ -15,17 +15,17 @@ candles = pl.read_parquet("KXBTC_candles.parquet").with_columns(
     mid=(pl.col("yes_bid_close_dollars") + pl.col("yes_ask_close_dollars")) / 2
 ).sort("ticker", "end_period_ts")
 
-trades = pl.read_parquet("KXBTC_trades.parquet").with_columns(
+trades = pl.read_parquet("data/KXBTC_trades.parquet").with_columns(
     pl.col("created_time").str.to_datetime()
 )
 
-markets = pl.read_parquet("KXBTC_markets.parquet").with_columns(
+markets = pl.read_parquet("data/KXBTC_markets.parquet").with_columns(
     close_ts=pl.col("close_time").str.to_datetime().dt.replace_time_zone(None).dt.epoch("s")
 )
 
-ranked = pl.read_parquet("ranked_data.parquet")
+ranked = pl.read_parquet("data/ranked_data.parquet")
 top_ticker = ranked["ticker"][0]
-params = pl.read_parquet("params.parquet")
+params = pl.read_parquet("data/params.parquet")
 k_fit = params.filter(pl.col("ticker") == top_ticker)["k"][0] * 100
 
 
@@ -163,7 +163,7 @@ fig.update_layout(
     xaxis_tickprefix="$",
     bargap=0.02,
 )
-fig.write_html("pnl_hist.html", auto_open=True)
+fig.write_html("plots/pnl_hist.html", auto_open=True)
 
 # --- equity curve: cumulative pnl by market date ---
 dated = results.with_columns(
@@ -192,7 +192,7 @@ fig.update_layout(
     yaxis_title="cumulative P&L ($)",
     yaxis_tickprefix="$",
 )
-fig.write_html("pnl_curve.html", auto_open=True)
+fig.write_html("plots/pnl_curve.html", auto_open=True)
 
 initial_capital = 100.0  # working capital assumption; size-1 quoting rarely uses more
 

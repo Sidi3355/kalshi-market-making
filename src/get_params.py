@@ -2,12 +2,12 @@ import polars as pl, requests
 import numpy as np
 import plotly.graph_objects as go
 
-ranked = pl.read_parquet("ranked_data.parquet")
+ranked = pl.read_parquet("data/ranked_data.parquet")
 top_ticker = ranked["ticker"][0]
 
 # sigma (volatility)
 
-candles = pl.read_parquet("KXBTC_candles.parquet").with_columns(
+candles = pl.read_parquet("data/KXBTC_candles.parquet").with_columns(
     pl.col("yes_bid_close_dollars").cast(pl.Float64),
     pl.col("yes_ask_close_dollars").cast(pl.Float64),
 ).filter(
@@ -37,11 +37,11 @@ fig.update_layout(
     xaxis_title="time",
 )
 
-#fig.write_html("sigma.html", auto_open=True)        
+#fig.write_html("plots/sigma.html", auto_open=True)        
 
 # A (trades per hour at mid-price) and k (decay rate from mid-price), modelled together exponentially
 
-trades = pl.read_parquet("KXBTC_trades.parquet").with_columns(
+trades = pl.read_parquet("data/KXBTC_trades.parquet").with_columns(
     pl.col("created_time").str.to_datetime()
 )
 
@@ -86,7 +86,7 @@ fig.add_scatter(x=d, y=k_slope * d + log_A, mode="lines", name=f"fit: k={k:.2f}"
 fig.update_layout(xaxis_title="distance from mid (cents)",
                   yaxis_title="log trades/hour")
 
-#fig.write_html("k_fit.html", auto_open=True)
+#fig.write_html("plots/k_fit.html", auto_open=True)
 
 params = pl.DataFrame({
     "ticker": [top_ticker],
@@ -94,4 +94,4 @@ params = pl.DataFrame({
     "A": [A],
     "sigma_med": [sigma["sigma_1m"].drop_nulls().median()],
 })
-params.write_parquet("params.parquet")
+params.write_parquet("data/params.parquet")

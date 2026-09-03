@@ -41,7 +41,7 @@ def flat(d, prefix=""):
     return out
 
 
-def collect(series_list, days=30, min_volume=50, out_dir="."):
+def collect(series_list, days=30, min_volume=50, out_dir="data"):
     for series in series_list:
         markets = list(pages("/markets", "markets", series_ticker=series, status="settled",
                              min_close_ts=int(time.time()) - days * 86400))
@@ -61,7 +61,7 @@ def collect(series_list, days=30, min_volume=50, out_dir="."):
 
 # sorted trading volume per hour
 
-trades = pl.read_parquet(source="KXBTC_trades.parquet").with_columns(
+trades = pl.read_parquet(source="data/KXBTC_trades.parquet").with_columns(
     pl.col("created_time").str.to_datetime()
 )
 per_market_trades = trades.group_by("ticker").agg(
@@ -81,7 +81,7 @@ per_market_trades = per_market_trades.with_columns(
 
 # sorted median spread and mid-price volatility
 
-candles = pl.read_parquet("KXBTC_candles.parquet").with_columns(
+candles = pl.read_parquet("data/KXBTC_candles.parquet").with_columns(
     pl.col("yes_bid_close_dollars").cast(pl.Float64),
     pl.col("yes_ask_close_dollars").cast(pl.Float64),
 ).filter(
@@ -175,4 +175,4 @@ ranked = summary.with_columns(
 
 print(ranked)
 
-ranked.write_parquet(f"./ranked_data.parquet")
+ranked.write_parquet(f"data/ranked_data.parquet")

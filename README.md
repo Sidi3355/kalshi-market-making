@@ -41,12 +41,3 @@ python collect_data.py   # or reuse the parquet files included here
 python get_params.py
 python backtest.py
 ```
-
-## Caveats
-
-This is a research backtest, not a live P&L claim:
-
-- **Optimistic fills** — any print crossing the quote is assumed to fill; real queue position and priority are ignored.
-- Quotes are static within each minute; candle-close mids are used as the reference price.
-- Parameters (γ = 0.1, 90-min cutoff) were chosen with an in-sample grid search plus a rough old/new out-of-sample split — limited data, so overfitting risk remains.
-- Kalshi fee schedules change; the 1.75% maker fee rate is hardcoded.
